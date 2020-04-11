@@ -7,11 +7,11 @@
 </head>
 <style>
     td:nth-child(1) {
-        padding-right: 5rem;
+        padding-right: 2rem;
     }
 </style>
 
-<body style="background-color: lightyellow; padding-left: 20vw; padding-right: 20vw; padding-top: 10vh;">
+<body style="background-color: lightyellow; padding-left: 15vw; padding-right: 15vw; padding-top: 10vh;">
     <div>
         <span>輸入訊息：</span>
         <input type="text">
@@ -22,7 +22,7 @@
         let init = false;
         let display = document.querySelector("#display");
         let input = document.querySelector("input");
-        let WSLink = "wss://ca24a01a.ngrok.io";
+        let WSLink = "wss://1e536e91.ngrok.io";
 
         input.focus();
 
@@ -82,7 +82,6 @@
 
         function datetime() {
             let d = new Date();
-            let year = d.getFullYear();
             let month = ("0" + (d.getMonth() + 1)).slice(-2);;
             let day = ("0" + d.getDate()).slice(-2);
             let hour = ("0" + d.getHours()).slice(-2);
@@ -90,7 +89,7 @@
             let sec = ("0" + d.getSeconds()).slice(-2);
             let ms = ("00" + d.getMilliseconds()).slice(-3);
 
-            return `${year}/${month}/${day} ${hour}:${min}:${sec}.<small>${ms}</small>`;
+            return `${month}/${day} ${hour}:${min}:${sec}.<small>${ms}</small>`;
         }
     </script>
 </body>
