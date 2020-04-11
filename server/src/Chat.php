@@ -18,7 +18,7 @@ class Chat implements MessageComponentInterface {
 
     public function onMessage(ConnectionInterface $from, $msg) {
         $numRecv = count($this->clients) - 1;
-        echo sprintf('連線 %d 送出訊息 "%s" 給其他 %d 個連線' . "\n", $from, $msg, $numRecv);
+        echo "連線 {$from->resourceId} 送出訊息 \"{$msg}\" 給其他 {$numRecv} 個連線\n";
 
         foreach ($this->clients as $client) {
             if ($from !== $client) {

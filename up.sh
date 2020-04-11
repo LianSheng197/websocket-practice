@@ -2,6 +2,7 @@
 
 # 確保目前沒有 ngrok 在執行（僅限免費帳號）
 killall ngrok 2> /dev/null
+killall php 2> /dev/null
 
 echo "執行 websocker server";
 php server/bin/chat-server.php 2> /dev/null &
@@ -21,10 +22,10 @@ sed -E -i "s/[0-9a-f]{8}/$sub/" client/index.html
 sleep 0.5
 
 echo "準備更新"
-# now=$(date +"%Y/%m/%d_%H:%M:%S")
-# git add .
-# git commit --author "AutoCommit <noreply@localhost>" -m "Auto update ($now)"
-# git push
+now=$(date +"%Y/%m/%d_%H:%M:%S")
+git add .
+git commit --author "AutoCommit <noreply@localhost>" -m "Auto update ($now)"
+git push
 sleep 0.5
 
 echo "已完成"
