@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        let init = false;
+        let WSLink = "ws://fd17b6b7.ngrok.io"
+
+        let ws = new WebSocket(WSLink);
+        ws.onopen = function (e) {
+            init = true;
+            msg("已建立連線");
+        };
+
+        ws.onmessage = function (e) {
+            msg(e.data);
+        };
+
+        ws.onclose = function() {
+            msg(`連線已中斷`);
+        }
+
+        setTimeout(()=>{
+            let id = setInterval(()=>{
+                if(!init){
+                    msg(`連線錯誤！ (${WSLink})`);
+                    clearInterval(id);
+                }
+            }, 100)
+        },3000);
+
+        function msg(str) {
+            console.log(str);
+        }
+    </script>
+</body>
+
+</html> 
