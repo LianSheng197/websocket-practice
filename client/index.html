@@ -1,95 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <title>WebSocket Client</title>
+    <title>Chat Simulate</title>
+    <style>
+        body {
+            background-color: lightyellow;
+            padding: 0;
+        }
+
+        .quarter {
+            display: inline-flex;
+            align-items: center;
+            min-width: 48vw;
+            min-height: 47vh;
+            margin-top: 4px;
+            border: 1px dashed #eee;
+        }
+    </style>
 </head>
-<style>
-    td:nth-child(1) {
-        padding-right: 2rem;
-    }
-</style>
 
-<body style="background-color: lightyellow; padding-left: 15vw; padding-right: 15vw; padding-top: 10vh;">
-    <div>
-        <span>輸入訊息：</span>
-        <input type="text">
-    </div>
-    <hr>
-    <table id="display"></table>
+<body>
+    <div class="quarter"></div>
+    <div class="quarter"></div>
+    <div class="quarter"></div>
+    <div class="quarter"></div>
+
     <script>
-        let init = false;
-        let display = document.querySelector("#display");
-        let input = document.querySelector("input");
-        let WSLink = "wss://4d5138ac.ngrok.io";
+        document.querySelectorAll("div.quarter").forEach((each) => {
+            each.innerHTML = `
+                <div style="margin: auto;">
+                    <div>
+                        <span>暱稱: </span>
+                        <input type="text">
+                    </div>
+                    <hr>
+                    <div class="entrance" style="padding: 4px; margin: auto; background-color: #ddd; border-radius: 4px; width: fit-content; height: fit-content; cursor: pointer; font-size: 1.2rem; font-weight: bold;">Open</div>
+                </div>
+            `;
 
-        input.focus();
-
-        input.addEventListener("keyup", (e) => {
-            if (e.keyCode == 13) {
-                if (e.target.value != "") {
-                    e.preventDefault();
-                    send(e.target.value);
-                    msg(`送出訊息：${e.target.value}`);
-
-                    e.target.value = "";
+            each.querySelector("div.entrance").addEventListener("click", (e) => {
+                let input = e.target.parentNode.querySelector("input");
+                if (input.value != "") {
+                    each.setAttribute("data-name", input.value);
+                    webSocket(input.value);
                 } else {
-                    msg(`<span style='color: orange; font-weight: bold;'>請輸入內容！</span>`);
+                    input.value = "請填寫暱稱";
+                    input.select();
+                    input.focus();
                 }
-            }
+            })
         });
 
-        let ws = new WebSocket(WSLink);
-        ws.onopen = function (e) {
-            init = true;
-            msg("<span style='color: green; font-weight: bold;'>已建立連線</span>");
-        };
+        function webSocket(name) {
+            let init = false;
 
-        ws.onmessage = function (e) {
-            msg(e.data);
-        };
-
-        ws.onclose = function () {
-            if (init) {
-                msg(`<span style='color: red; font-weight: bold;'>連線已中斷</span>`);
-            } else {
-                msg(`<span style='color: red; font-weight: bold;'>連線錯誤！ (${WSLink})</span>`);
-            }
-        }
-
-
-        // 顯示訊息
-        function msg(str) {
-            let html = `
-            <tr>
-                <td>${datetime()}</td>
-                <td>${str}</td>
-            </tr>
+            document.querySelector(`div.quarter[data-name="${name}"]`).innerHTML = `
+                <div>
+                    <span>輸入訊息：</span>
+                    <input type="text" data-name="${name}">
+                </div>
+                <hr>
+                <table id="display" data-name="${name}"></table>
             `;
-            display.innerHTML += html;
 
-            // 若訊息數量大於 5 條，則刪除最舊的
-            while (display.children.length > 5) {
-                display.removeChild(display.childNodes[0]);
+            let display = document.querySelector(`#display[data-name="${name}"]`);
+            let input = document.querySelector(`input[data-name="${name}"]`);
+            let WSLink = "wss://cfec16de.ngrok.io";
+
+            input.focus();
+
+            input.addEventListener("keyup", (e) => {
+                if (e.keyCode == 13) {
+                    if (e.target.value != "") {
+                        e.preventDefault();
+                        send(e.target.value);
+                        msg(`送出訊息：${e.target.value}`, name);
+
+                        e.target.value = "";
+                    } else {
+                        msg(`<span style='color: orange; font-weight: bold;'>請輸入內容！</span>`, name);
+                    }
+                }
+            });
+
+            let ws = new WebSocket(WSLink);
+            ws.onopen = function (e) {
+                init = true;
+                msg("<span style='color: green; font-weight: bold;'>已建立連線</span>", name);
+            };
+
+            ws.onmessage = function (e) {
+                msg(e.data, name);
+            };
+
+            ws.onclose = function () {
+                if (init) {
+                    msg(`<span style='color: red; font-weight: bold;'>連線已中斷</span>`, name);
+                } else {
+                    msg(`<span style='color: red; font-weight: bold;'>連線錯誤！ (${WSLink})</span>`, name);
+                }
             }
-        }
 
-        // 傳送文字
-        function send(msg) {
-            ws.send(msg);
-        }
+            // 顯示訊息
+            function msg(str, name = undefined) {
+                let html = `
+                    <tr>
+                        <td>${datetime()}</td>
+                        <td>${str}</td>
+                    </tr>
+                `;
+                display.innerHTML += html;
 
-        function datetime() {
-            let d = new Date();
-            let month = ("0" + (d.getMonth() + 1)).slice(-2);;
-            let day = ("0" + d.getDate()).slice(-2);
-            let hour = ("0" + d.getHours()).slice(-2);
-            let min = ("0" + d.getMinutes()).slice(-2);
-            let sec = ("0" + d.getSeconds()).slice(-2);
-            let ms = ("00" + d.getMilliseconds()).slice(-3);
+                // 若訊息數量大於 5 條，則刪除最舊的
+                while (display.children.length > 5) {
+                    display.removeChild(display.childNodes[0]);
+                }
+            }
 
-            return `${month}/${day} ${hour}:${min}:${sec}.<small>${ms}</small>`;
+            // 傳送文字
+            function send(msg) {
+                ws.send(msg);
+            }
+
+            function datetime() {
+                let d = new Date();
+                let month = ("0" + (d.getMonth() + 1)).slice(-2);;
+                let day = ("0" + d.getDate()).slice(-2);
+                let hour = ("0" + d.getHours()).slice(-2);
+                let min = ("0" + d.getMinutes()).slice(-2);
+                let sec = ("0" + d.getSeconds()).slice(-2);
+                let ms = ("00" + d.getMilliseconds()).slice(-3);
+
+                return `${month}/${day} ${hour}:${min}:${sec}.<small>${ms}</small>`;
+            }
         }
     </script>
 </body>

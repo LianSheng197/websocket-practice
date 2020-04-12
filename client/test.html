@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Client</title>
+</head>
+<style>
+    td:nth-child(1) {
+        padding-right: 2rem;
+    }
+</style>
+
+<body style="background-color: lightyellow; padding-left: 15vw; padding-right: 15vw; padding-top: 10vh;">
+    <div>
+        <span>輸入訊息：</span>
+        <input type="text">
+    </div>
+    <hr>
+    <table id="display"></table>
+    <script>
+        let init = false;
+        let display = document.querySelector("#display");
+        let input = document.querySelector("input");
+        let WSLink = "wss://40f7aabb.ngrok.io";
+
+        input.focus();
+
+        input.addEventListener("keyup", (e) => {
+            if (e.keyCode == 13) {
+                if (e.target.value != "") {
+                    e.preventDefault();
+                    send(e.target.value);
+                    msg(`送出訊息：${e.target.value}`);
+
+                    e.target.value = "";
+                } else {
+                    msg(`<span style='color: orange; font-weight: bold;'>請輸入內容！</span>`);
+                }
+            }
+        });
+
+        let ws = new WebSocket(WSLink);
+        ws.onopen = function (e) {
+            init = true;
+            msg("<span style='color: green; font-weight: bold;'>已建立連線</span>");
+        };
+
+        ws.onmessage = function (e) {
+            msg(e.data);
+        };
+
+        ws.onclose = function () {
+            if (init) {
+                msg(`<span style='color: red; font-weight: bold;'>連線已中斷</span>`);
+            } else {
+                msg(`<span style='color: red; font-weight: bold;'>連線錯誤！ (${WSLink})</span>`);
+            }
+        }
+
+
+        // 顯示訊息
+        function msg(str) {
+            let html = `
+            <tr>
+                <td>${datetime()}</td>
+                <td>${str}</td>
+            </tr>
+            `;
+            display.innerHTML += html;
+
+            // 若訊息數量大於 5 條，則刪除最舊的
+            while (display.children.length > 5) {
+                display.removeChild(display.childNodes[0]);
+            }
+        }
+
+        // 傳送文字
+        function send(msg) {
+            ws.send(msg);
+        }
+
+        function datetime() {
+            let d = new Date();
+            let month = ("0" + (d.getMonth() + 1)).slice(-2);;
+            let day = ("0" + d.getDate()).slice(-2);
+            let hour = ("0" + d.getHours()).slice(-2);
+            let min = ("0" + d.getMinutes()).slice(-2);
+            let sec = ("0" + d.getSeconds()).slice(-2);
+            let ms = ("00" + d.getMilliseconds()).slice(-3);
+
+            return `${month}/${day} ${hour}:${min}:${sec}.<small>${ms}</small>`;
+        }
+    </script>
+</body>
+
+</html>

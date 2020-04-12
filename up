@@ -2,22 +2,33 @@
 
 ### Control ###
 ws=1 # WebSocket
-# ng=1 # Ngrok
+ng=1 # Ngrok
 c=1 # Git: Commit
 p=1 # Git: Push
 
 if [ "$ws" != "" ]; then
     echo "更新並執行 websocker server";
-    killall php 2> /dev/null
+
+    file="server.pid"
+    if [ -f "$file" ]; then
+        kill $(head -n 1 $file) 2> /dev/null
+    fi
+
     php server/bin/chat-server.php 2> /dev/null &
+    echo $! > $file
     sleep 0.5
 fi
 
 if [ "$ng" != "" ]; then
     echo "更新並執行 ngrok";
-    # 確保目前沒有 ngrok 在執行（僅限免費帳號）
-    killall ngrok 2> /dev/null
-    sh -c "ngrok http 8080 > /dev/null &"
+
+    file="ngrok.pid"
+    if [ -f "$file" ]; then
+        kill $(head -n 1 $file) 2> /dev/null
+    fi
+
+    ngrok http 8080 > /dev/null &
+    echo $! > $file
     sleep 0.5
     
     echo "等待中...";
