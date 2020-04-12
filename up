@@ -33,8 +33,8 @@ case "$1" in
         git commit
         ;;
     "" | *)
-        echo "./up auto   -- 自動提交並上傳"
-        echo "./up manual -- 手動提交並上傳"
+        echo "./up.sh auto   -- 自動提交並上傳"
+        echo "./up.sh manual -- 手動提交並上傳"
         ;;
 esac
 
