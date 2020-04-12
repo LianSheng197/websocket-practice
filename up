@@ -1,44 +1,59 @@
 #!/bin/bash
 
-# 確保目前沒有 ngrok 在執行（僅限免費帳號）
-killall ngrok 2> /dev/null
-killall php 2> /dev/null
+### Control ###
+ws=1 # WebSocket
+# ng=1 # Ngrok
+c=1 # Git: Commit
+p=1 # Git: Push
 
-echo "執行 websocker server";
-php server/bin/chat-server.php 2> /dev/null &
-sleep 0.5
+if [ "$ws" != "" ]; then
+    echo "更新並執行 websocker server";
+    killall php 2> /dev/null
+    php server/bin/chat-server.php 2> /dev/null &
+    sleep 0.5
+fi
 
-echo "執行 ngrok";
-sh -c "ngrok http 8080 > /dev/null &"
-sleep 0.5
-
-echo "等待中...";
-sleep 3
-
-echo "變更 client/index.html";
-sub=$(curl --silent --show-error http://127.0.0.1:4040/api/tunnels \
+if [ "$ng" != "" ]; then
+    echo "更新並執行 ngrok";
+    # 確保目前沒有 ngrok 在執行（僅限免費帳號）
+    killall ngrok 2> /dev/null
+    sh -c "ngrok http 8080 > /dev/null &"
+    sleep 0.5
+    
+    echo "等待中...";
+    sleep 3
+    
+    echo "變更 client/index.html";
+    sub=$(curl --silent --show-error http://127.0.0.1:4040/api/tunnels \
     | sed -nE 's/.*public_url":"https:..([^"\.]*).*/\1/p')
-sed -E -i "s/[0-9a-f]{8}/$sub/" client/index.html
-sleep 0.5
+    sed -E -i "s/[0-9a-f]{8}/$sub/" client/index.html
+    sleep 0.5
+fi
 
-echo "準備更新"
-now=$(date +"%Y/%m/%d_%H:%M:%S")
-git add .
+if [ "$c" != "" ]; then
+    echo "準備提交"
+    now=$(date +"%Y/%m/%d_%H:%M:%S")
+    
+    case "$1" in
+        "auto")
+            git add .
+            git commit --author "AutoCommit <noreply@localhost>" -m "Auto update ($now)"
+        ;;
+        "manual")
+            git add .
+            git commit
+        ;;
+        "" | *)
+            echo "./up.sh auto   -- 自動提交並上傳"
+            echo "./up.sh manual -- 手動提交並上傳"
+        ;;
+    esac
+fi
 
-case "$1" in
-    "auto")
-        git commit --author "AutoCommit <noreply@localhost>" -m "Auto update ($now)"
-        ;;
-    "manual")
-        git commit
-        ;;
-    "" | *)
-        echo "./up.sh auto   -- 自動提交並上傳"
-        echo "./up.sh manual -- 手動提交並上傳"
-        ;;
-esac
-
-git push
-sleep 0.5
+if [ "$p" != "" ]; then
+    echo "更新"
+    git push
+    sleep 0.5
+fi
 
 echo "已完成"
